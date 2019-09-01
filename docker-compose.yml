@@ -1,0 +1,61 @@
+#一份标准的docker-compose.yml
+#文件应该包含version、services、networks三大部分，其中最关键的就是services和networks两个部分。
+
+version: '2'
+services:                               
+  eureka:                  #注册中心
+    image: ag/ace-center   #image 则是指定服务的镜像名称或镜像id
+    ports:
+      - "8761:8761"        #用作端口映射使用HOST:CONTAINER格式：建议采用字符串格式。
+  ace-auth:                #认证中心
+    image: ag/ace-auth
+    ports:
+      - "9777:9777"
+    depends_on:            #depends_on解决了容器的依赖、启动先后的问题。先启用注册中心eureka；
+      - eureka
+    environment:           #设置镜像变量，它可以保存变量到镜像里，也就是说启动的容器也会包含这些变量设置
+      - EUREKA_HOST=eureka
+      - EUREKA_PORT=8761
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - RABBIT_MQ_HOST=rabbitmq
+      - RABBIT_MQ_HOST=5672
+  ace-admin:                #公共服务模块下的管理中心服务器；
+    image: ag/ace-admin
+    ports:
+      - "8762:8762"
+    links:                 #解决容器连接问题，与docker的–link一样的效果，会连接到其他服务中的容器
+      - ace-auth
+    entrypoint: ./wait-for-it.sh ace-auth:9777 -t 600 --  #开机启动，执行文件内容；
+    command: java -Djava.security.egd=file:/dev/./urandom -jar /app.jar  #使用 command 可以覆盖容器启动后默认执行的命令
+    environment:            #设置镜像变量，它可以保存变量到镜像里，也就是说启动的容器也会包含这些变量设置
+      - EUREKA_HOST=eureka
+      - EUREKA_PORT=8761
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - RABBIT_MQ_HOST=rabbitmq
+      - RABBIT_MQ_HOST=5672
+  ace-gate:               #网关，路由
+    image: ag/ace-gate    #image 则是指定服务的镜像名称或镜像id
+    ports:
+      - "8765:8765"
+    links:
+      - ace-auth
+    entrypoint: ./wait-for-it.sh ace-auth:9777 -t 600 --
+    command: java -Djava.security.egd=file:/dev/./urandom -jar /app.jar
+    environment:
+      - EUREKA_HOST=eureka
+      - EUREKA_PORT=8761
+      - RABBIT_MQ_HOST=rabbitmq
+      - RABBIT_MQ_HOST=5672
+  redis:                      
+    image: redis
+    restart: always    #当Docker启动后，容器自动启动
+    ports:
+      - "6379:6379"
+    volumes:              #定义挂载点：linux中的磁盘文件系统的入口目录，类似于windows中的用来访问不同分区的C:、D:、E:等盘符
+      - ./.docker/redis:/var/lib/redis

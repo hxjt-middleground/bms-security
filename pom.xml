@@ -1,0 +1,161 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.hxjt.lzs</groupId>
+  <artifactId>bms-security</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging> 
+    <url>https://github.com/hxjt-middleground/person-cloud-platform.git</url><!--开发团队官方地址 ，非必要  -->
+    <!--这块是一些非必要的设置信息，但是作为项目来讲、版权来讲，也会很重要的信息。  -->
+    <licenses>
+        <license>
+            <name>Apache 2</name><!--项目除了artifactId外，可以定义多个名称。  -->
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url><!--Apache许可证  -->
+            <distribution>repo</distribution><!--项目描述  -->
+            <comments>A business-friendly OSS license</comments> <!--关于license的补充信息-->
+        </license>
+    </licenses>
+    <!--引入springboot依赖  -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.2.RELEASE</version>
+    </parent>  
+    <!--POM文件常量定义区，在文件中可以直接引用，如版本、编码等  --> 
+    <properties>
+        <docker.image.prefix>ag</docker.image.prefix><!-- 设置docker镜像的前缀"ag" -->
+        <docker.plugin.version>0.4.13</docker.plugin.version><!-- 指定引入插件的版本号 -->
+        <mapper.version>3.4.0</mapper.version><!-- 通用Mapper的版本号 -->
+        <!--两者共同依据jdk的版本  -->
+        <maven.compile.source>1.8</maven.compile.source><!-- maven 编译资源 版本号  -->
+        <maven.compile.target>1.8</maven.compile.target><!-- maven 编译目标版本号-->
+        <boot.admin.client>2.1.2</boot.admin.client><!--指定监控中心spring boot admin版本号  -->
+    </properties>
+    <!-- 配置开发者信息:-->
+    <developers>
+        <developer>
+            <name>bms</name>
+            <email>374357319@qq.com</email>
+        </developer>
+    </developers>
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <!-- 引入lombok插件，消除封装对象需要写重复的代码 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.14</version>
+            <scope>provided</scope><!-- 作用域 -->
+        </dependency>
+    </dependencies>
+    <!-- 仓库配置信息 ：仓库配置信息，pom里面的仓库与setting.xml里的仓库功能是一样，主要的区别在于，pom里的仓库是个性化的。
+   	 比如一家大公司里的setting文件是公用 的，所有项目都用一个setting文件，但各个子项目却会引用不同的第三方库，
+   	 所以就需要在pom里设置自己需要的仓库地址-->
+    <repositories>
+    	<!--仓库1  -->
+        <repository>
+            <id>oss</id><!-- 库的id -->
+            <name>oss</name><!-- 库的名称 -->
+            <url>https://oss.sonatype.org/content/groups/public</url><!--库的url  -->
+        </repository>
+        <!-- 仓库2 -->
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/libs-milestone</url>
+            <snapshots><!-- 库中版本为snapshots的构件 -->
+                <enabled>false</enabled><!-- 是否支持更新-->
+            </snapshots>
+        </repository>
+        <!-- 仓库3 -->
+        <repository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+    <!--依赖管理，用于管理spring-cloud的依赖，其中Camden.SR3是版本号-->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>Greenwich.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- 引入JSON处理器 ：java对象与json之间的转换-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.33</version>
+            </dependency>
+            <!-- 引入Spring Cloud for Alibaba -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>0.2.1.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+	<!--  在pom.xml中使用distributionManagement将项目打包上传到nexus私服  -->
+	<!-- 使用分发管理将本项目打成jar包，直接上传到指定服务器 -->
+    <distributionManagement>
+    	<!--快照仓库：snapshot快照仓库用于保存开发过程中的不稳定版本-->
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <!-- 发布仓库：正式仓库则是用来保存稳定的发行版本-->
+        <repository>
+        	<!-- nexus服务器中用户名：在settings.xml中<server>的id-->
+            <id>ossrh</id>
+            <!--自定义名称  -->
+            <name>Maven Central Staging Repository</name>
+            <!-- 仓库的url -->
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+    
+    <!--build模块设置 ：这部分主要是对项目的构建过程进行配置，包括打包的方式、插件的安装等-->
+    <build>
+    	<!-- plugins配置 -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId><!--  maven插件-->
+                <!--maven代码编译的工具  -->
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version><!-- 引用maven版本号 -->
+                <!-- 通常用于私有不开源的plugin,不能够详细了解plugin的内部工作原理，但使plugin满足的properties -->
+                <configuration>
+                    <source>${maven.compile.source}</source>
+                    <target>${maven.compile.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <!--  执行maven 代码源码打包的工具-->
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
+                <!-- plugin也有很多个目标，每个目标具有不同的配置，executions就是设定plugin的目标 -->
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<!-- 从Maven项目的POM文件中读取必须信息，发布该Maven项目相关的所有构件（Maven项目的POM和各种构件）到远程库 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+            </plugin>
+        </plugins>
+    </build>  
+</project>
