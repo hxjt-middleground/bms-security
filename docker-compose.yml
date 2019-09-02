@@ -21,7 +21,7 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
       - RABBIT_MQ_HOST=rabbitmq
-      - RABBIT_MQ_HOST=5672
+      - RABBIT_MQ_HOST=15672
   ace-admin:                #公共服务模块下的管理中心服务器；
     image: ag/ace-admin
     ports:
@@ -38,7 +38,7 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
       - RABBIT_MQ_HOST=rabbitmq
-      - RABBIT_MQ_HOST=5672
+      - RABBIT_MQ_HOST=15672
   ace-gate:               #网关，路由
     image: ag/ace-gate    #image 则是指定服务的镜像名称或镜像id
     ports:
@@ -51,7 +51,7 @@ services:
       - EUREKA_HOST=eureka
       - EUREKA_PORT=8761
       - RABBIT_MQ_HOST=rabbitmq
-      - RABBIT_MQ_HOST=5672
+      - RABBIT_MQ_HOST=15672
   redis:                      
     image: redis
     restart: always    #当Docker启动后，容器自动启动
